@@ -9,8 +9,8 @@ class App extends StatefulWidget {
 }
 
 class _AppState extends State<App> {
-  StreamController title = new StreamController();
   TextEditingController searchController = new TextEditingController();
+  Movies movies = new Movies();
 
   @override
   Widget build(BuildContext context) {
@@ -21,12 +21,11 @@ class _AppState extends State<App> {
           body: Container(
             child: Center(
               child: StreamBuilder(
-                stream: title.stream,
+                stream: movies.outTitle(),
                 builder: (BuildContext context, AsyncSnapshot snapshot) {
-                  if (snapshot.hasData == false) {
-                    return CircularProgressIndicator();
-                  }
-                  return ListView(children: <Widget>[Text('${snapshot.data}')]);
+                  return snapshot.hasData == false
+                      ? CircularProgressIndicator()
+                      : ListView(children: <Widget>[Text('${snapshot.data}')]);
                 },
               ),
             ),
@@ -61,7 +60,7 @@ class _AppState extends State<App> {
             padding: EdgeInsets.only(left: 10.0),
             child: IconButton(
                 onPressed: () {
-                  getJson();
+                  movies.onFutureSucceed(0);
                   //search.sink.add(searchController.text);
                 },
                 icon: Icon(Icons.search, size: 30.0, color: Colors.white)),
@@ -72,12 +71,44 @@ class _AppState extends State<App> {
       backgroundColor: Colors.green,
     );
   }
+}
 
-  getJson() async {
-    var response = await http.get("https://yts.am/api/v2/list_movies.json");
-    var jsonBody = convert.jsonDecode(response.body);
-    var jsonData = jsonBody['data'];
+class Movies {
+  Map jsonData;
+  var jsonBody;
 
-    title.sink.add(jsonData);
+  StreamController<dynamic> titleController = new StreamController();
+
+  List movies = new List();
+  List details = new List();
+
+  Future<void> getJsonData() async =>
+      http.get("https://yts.am/api/v2/list_movies.json");
+
+  onFutureSucceed(int index) {
+    Future response = getJsonData();
+    response.then((value) {
+      jsonBody = convert.jsonDecode(value.body);
+      print(jsonBody);
+      print("yeha aaye");
+      getMovieDetails(index);
+    });
+
+  }
+    outTitle()=> titleController.stream;
+
+  getMovieDetails(int index) {
+    jsonData = jsonBody['data'];
+    for (int i = 0; i < jsonData.length; i++) {
+      movies.add(jsonData['movies'][i]);
+    }
+
+    details.add(movies[index]['title']);
+    details.add(movies[index]['genres'][0]);
+    details.add(movies[index]['torrents'][0]['size']);
+    details.add(movies[index]['torrents'][1]['size']);
+
+    print(movies);
+    titleController.sink.add(details[0]);
   }
 }
