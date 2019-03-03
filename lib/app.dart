@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
 
+import 'moviecard.dart';
+
 class App extends StatefulWidget {
   @override
   _AppState createState() => _AppState();
@@ -25,7 +27,7 @@ class _AppState extends State<App> {
                 builder: (BuildContext context, AsyncSnapshot snapshot) {
                   return snapshot.hasData == false
                       ? CircularProgressIndicator()
-                      : ListView(children: <Widget>[Text('${snapshot.data}')]);
+                      : movieCard(snapshot);
                 },
               ),
             ),
@@ -78,37 +80,64 @@ class Movies {
   var jsonBody;
 
   StreamController<dynamic> titleController = new StreamController();
-
   List movies = new List();
-  List details = new List();
 
   Future<void> getJsonData() async =>
-      http.get("https://yts.am/api/v2/list_movies.json");
+      //https://yts.am/api/v2/list_movies.json?query_term=${moviename}&limit=${this.state.limit}&sort_by=year`;
+      http.get("https://yts.am/api/v2/list_movies.json?limit=40");
 
+//todo when data from future obtained
   onFutureSucceed(int index) {
     Future response = getJsonData();
     response.then((value) {
       jsonBody = convert.jsonDecode(value.body);
-      print(jsonBody);
-      print("yeha aaye");
       getMovieDetails(index);
+    }, onError: (e) {
+      titleController.sink.add(e);
+      print("yeha error aayo $e");
     });
-
   }
-    outTitle()=> titleController.stream;
 
+  List<MovieDetails> movie = [];
+  Map details = new Map();
   getMovieDetails(int index) {
     jsonData = jsonBody['data'];
     for (int i = 0; i < jsonData.length; i++) {
       movies.add(jsonData['movies'][i]);
+      movie.add(new MovieDetails(movies[i]));
     }
 
-    details.add(movies[index]['title']);
-    details.add(movies[index]['genres'][0]);
-    details.add(movies[index]['torrents'][0]['size']);
-    details.add(movies[index]['torrents'][1]['size']);
+    setDetails(int indexOne) {
+      details['title'] = movie[indexOne].title;
+      details['genre'] = movie[indexOne].genres;
+      details['720'] = movie[indexOne].size720p;
+      details['1080'] = movie[indexOne].size1080p;
+      details['image'] = movie[indexOne].coverImage;
+      details['summary'] = movie[indexOne].summary;
+    }
 
-    print(movies);
-    titleController.sink.add(details[0]);
+    setDetails(2);
+    titleController.sink.add(details);
+  }
+
+  //output from stream
+  outTitle() => titleController.stream;
+}
+
+class MovieDetails {
+  String summary;
+  String title;
+  List genres;
+  String size720p;
+  String size1080p;
+  String coverImage;
+  Map details = new Map();
+  MovieDetails(this.details) {
+    title = details['title'];
+    genres = details['genres'];
+    size720p = details['torrents'][0]['size'];
+    size1080p = details['torrents'][1]['size'];
+    coverImage = details['large_cover_image'];
+    summary = details['summary'];
   }
 }
