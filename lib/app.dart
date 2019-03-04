@@ -3,6 +3,10 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
 
+import 'dart:math';
+
+import 'package:flutter/services.dart';
+
 import 'moviecard.dart';
 
 class App extends StatefulWidget {
@@ -10,10 +14,12 @@ class App extends StatefulWidget {
   _AppState createState() => _AppState();
 }
 
+String url = "https://yts.am/api/v2/list_movies.json";
+
 class _AppState extends State<App> {
   TextEditingController searchController = new TextEditingController();
   Movies movies = new Movies();
-
+  bool active = false;
   List movieList =
       new List(); //to store list of movies obtained from snapshot in stream
 
@@ -22,6 +28,9 @@ class _AppState extends State<App> {
     return MaterialApp(
         debugShowCheckedModeBanner: false,
         home: Scaffold(
+          floatingActionButton: floatingButton(),
+          floatingActionButtonLocation:
+              FloatingActionButtonLocation.centerFloat,
           backgroundColor: Colors.grey[200],
           appBar: appBar(),
           body: Container(
@@ -30,8 +39,14 @@ class _AppState extends State<App> {
                 stream: movies.outTitle(),
                 builder: (BuildContext context, AsyncSnapshot snapshot) {
                   if (snapshot.hasData == false) {
-                    movies.onFutureSucceed();
-                    return CircularProgressIndicator();
+                    if (active == false) {
+                      active = true;
+                      movies
+                          .onFutureSucceed(url + "?limit=10&page=$pageNumber");
+                      return CircularProgressIndicator();
+                    } else {
+                      return Text('No results found!!!');
+                    }
                   } else {
                     movieList = snapshot.data;
                     return ListView.builder(
@@ -55,11 +70,19 @@ class _AppState extends State<App> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           Flexible(
-            child: TextFormField(
+            child: TextField(
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 20.0, height: 1.5),
               cursorColor: Colors.green,
               controller: searchController,
+              onChanged: (String value) {
+                refreshLists();
+                searchController.text == null
+                    ? movies.onFutureSucceed(
+                        url + "?limit=10&page=${rand.nextInt(1000)}")
+                    : movies.onFutureSucceed(
+                        url + "?query_term=${searchController.text}");
+              },
               decoration: InputDecoration.collapsed(
                   hintText: 'e.g. London has fallen',
                   hintStyle: TextStyle(
@@ -76,8 +99,15 @@ class _AppState extends State<App> {
             padding: EdgeInsets.only(left: 10.0),
             child: IconButton(
                 onPressed: () {
-                  movies.onFutureSucceed();
-                  //search.sink.add(searchController.text);
+                  refreshLists();
+                  searchController.text == null
+                      ? movies.onFutureSucceed(
+                          url + "?limit=10&page=${rand.nextInt(1000)}")
+                      : movies.onFutureSucceed(
+                          url + "?query_term=${searchController.text}");
+
+                  SystemChannels.textInput.invokeMethod('TextInput.hide');
+                  searchController.clear();
                 },
                 icon: Icon(Icons.search, size: 30.0, color: Colors.white)),
           )
@@ -87,29 +117,96 @@ class _AppState extends State<App> {
       backgroundColor: Colors.green,
     );
   }
+
+//clears all list that contains movie details
+  void refreshLists() {
+    movies.details.clear();
+    movies.movies.clear();
+    movies.movie.clear();
+  }
+
+  static Random rand = new Random();
+  int pageNumber = rand.nextInt(1000);
+  //floating button to switch between pages
+  Widget floatingButton() {
+    return Material(
+      borderRadius: BorderRadius.circular(20.0),
+      color: Colors.green[900],
+      shadowColor: Colors.white,
+      elevation: 5.0,
+      child: SizedBox(
+        height: 40.0,
+        width: 150.0,
+        child: Padding(
+          padding: EdgeInsets.only(left: 0.0, right: 0.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              IconButton(
+                icon: Icon(
+                  Icons.keyboard_arrow_left,
+                  color: Colors.white,
+                ),
+                onPressed: () {
+                  if (pageNumber > 1) {
+                    refreshLists();
+                    pageNumber--;
+                    movies.onFutureSucceed(url + "?limit=10&page=$pageNumber");
+                    setState(() {});
+                  }
+                },
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 2.5),
+                child: Text('$pageNumber',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18.0,
+                        fontWeight: FontWeight.bold)),
+              ),
+              IconButton(
+                icon: Icon(
+                  Icons.keyboard_arrow_right,
+                  color: Colors.white,
+                ),
+                onPressed: () {
+                  if (pageNumber >= 1) {
+                    refreshLists();
+                    pageNumber++;
+                    movies.onFutureSucceed(url + "?limit=10&page=$pageNumber");
+                    setState(() {});
+                  }
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class Movies {
   Map jsonData;
   var jsonBody;
 
-  StreamController<dynamic> titleController = new StreamController();
+  StreamController<dynamic> streamController = new StreamController();
   List movies = new List();
+  onDispose() {
+    streamController.close();
+  }
 
-  Future<void> getJsonData() async =>
-      //https://yts.am/api/v2/list_movies.json?query_term=${moviename}&limit=${this.state.limit}&sort_by=year`;
-      http.get("https://yts.am/api/v2/list_movies.json?limit=40");
+  Future<void> getJsonData(String url1) async => http.get(url1);
 
 //todo when data from future obtained
-  onFutureSucceed() {
-    Future response = getJsonData();
+  onFutureSucceed(String url1) {
+    Future response = getJsonData(url1);
     response.then((value) {
       jsonBody = convert.jsonDecode(value.body);
       print('after jsonBody');
       getMovieDetails();
     }, onError: (e) {
-      titleController.sink.add(e);
-      print("yeha error aayo $e");
+      streamController.sink.addError(e);
     });
   }
 
@@ -130,7 +227,7 @@ class Movies {
     for (int i = 0; i < movie.length; i++) {
       setDetails(i);
     }
-    titleController.sink.add(details);
+    streamController.sink.add(details);
   }
 
   setDetails(int indexOne) {
@@ -139,7 +236,7 @@ class Movies {
   }
 
   //output from stream
-  outTitle() => titleController.stream;
+  outTitle() => streamController.stream;
 }
 
 class MovieDetails {
@@ -172,7 +269,7 @@ class MovieDetails {
       seeds1080 = details['torrents'][1]['seeds'].toString();
       peers1080 = details['torrents'][1]['peers'].toString();
     }
-    coverImage = details['large_cover_image'];
+    coverImage = details['medium_cover_image'];
     summary = details['description_full'];
 
     finalDetails['title'] = title;
