@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 
+TextStyle smallDetailStyle = new TextStyle(
+  color: Colors.white,
+  fontSize: 15.0,
+  fontWeight: FontWeight.bold,
+  fontStyle: FontStyle.italic,
+);
 //returns movie card
 Widget movieCard(Map snapshot) {
   return SizedBox(
     width: 230.0,
-    height: 352.0,
+    height: 350.0,
     child: Padding(
       padding: const EdgeInsets.all(8.0),
       child: Card(
@@ -15,6 +21,95 @@ Widget movieCard(Map snapshot) {
               DecoratedBox(
                   decoration: BoxDecoration(),
                   child: Image.network('${snapshot['image']}')),
+              Positioned(
+                right: 3.0,
+                top: 0.0,
+                child: Material(
+                    borderRadius: BorderRadius.only(
+                        topRight: Radius.elliptical(15.0, 20.0),
+                        bottomRight: Radius.elliptical(15.0, 20.0)),
+                    elevation: 3.0,
+                    color: Colors.green[400],
+                    child: SizedBox(
+                      height: 310.0,
+                      width: 105.0,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(
+                              'Year: ${snapshot['year']}',
+                              style: smallDetailStyle,
+                            ),
+                            Container(
+                              height: 10.0,
+                            ),
+                            Text(
+                              'Rating: ${snapshot['rating']}',
+                              style: smallDetailStyle,
+                            ),
+                            Container(
+                              height: 10.0,
+                            ),
+                            Text(
+                              'Duration: ${snapshot['runtime']} Mins',
+                              style: smallDetailStyle,
+                            ),
+                            Container(
+                              height: 50.0,
+                            ),
+                            Text('Seeds/Peers',
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15.0)),
+                                    Divider(color: Colors.white,height: 1.5,),
+
+                            Container(height: 10.0,),
+                            Text(
+                              '720p: ${snapshot['seeds720']}/${snapshot['peers720']}',
+                              style: smallDetailStyle,
+                            ),
+                            Container(height:10.0),
+                            Text(
+                              '1080p: ${snapshot['seeds1080']}/${snapshot['peers1080']}',
+                              style: smallDetailStyle,
+                            ),
+                          ],
+                        ),
+                      ),
+                    )),
+              ),
+              Positioned(
+                top: 125.0,
+                right: 88.0,
+                child: Material(
+                  borderRadius: BorderRadius.circular(10.0),
+                  elevation: 2.0,
+                  child: SizedBox(
+                    height: 20.0,
+                    width: 40.0,
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 2.0, right: 2.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          CircleAvatar(
+                            radius: 5.0,
+                            backgroundColor: Colors.green,
+                          ),
+                          CircleAvatar(
+                            radius: 5.0,
+                            backgroundColor: Colors.green,
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                  color: Colors.yellow,
+                ),
+              ),
               Positioned(
                 bottom: 3.0,
                 left: 0.0,
@@ -66,51 +161,67 @@ Widget movieCard(Map snapshot) {
                                     ),
                                   ])),
                           Padding(
-                            padding: EdgeInsets.all(10.0),
+                            padding: EdgeInsets.all(5.0),
                             child: Container(
-                                height: 170.0,
+                                height: 110.0,
                                 child: ListView(children: <Widget>[
                                   Text('${snapshot['summary']}',
                                       style: TextStyle(
                                           color: Colors.black,
-                                          fontSize: 16.0,
+                                          fontSize: 14.0,
                                           fontStyle: FontStyle.italic))
                                 ])),
                           ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          Column(
+                            //mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: <Widget>[
-                              SizedBox(
-                                height: 35.0,
-                                width: 90.0,
-                                child: MaterialButton(
-                                  splashColor: Colors.white,
-                                  onPressed: () {},
-                                  elevation: 3.0,
-                                  color: Colors.green,
-                                  child: Text('720p (${snapshot['720']})',
-                                      style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 11.0,
-                                          fontStyle: FontStyle.italic,
-                                          fontWeight: FontWeight.bold)),
+                              MaterialButton(
+                                height: 30.0,
+                                splashColor: Colors.white,
+                                onPressed: () {},
+                                elevation: 3.0,
+                                color: Colors.green,
+                                child: SizedBox(
+                                  width: 135.0,
+                                  child: Row(
+                                    children: <Widget>[
+                                      Icon(
+                                        Icons.file_download,
+                                        color: Colors.white,
+                                      ),
+                                      Text('720p (${snapshot['720']})',
+                                          style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 12.0,
+                                              fontStyle: FontStyle.italic,
+                                              fontWeight: FontWeight.bold)),
+                                    ],
+                                  ),
                                 ),
                               ),
-                              SizedBox(
-                                height: 35.0,
-                                width: 90.0,
-                                child: MaterialButton(
-                                  splashColor: Colors.white,
-                                  onPressed: () {},
-                                  elevation: 3.0,
-                                  color: Colors.green,
-                                  child: Text(
-                                      '1080p (${snapshot['1080']})',
-                                      style: TextStyle(
-                                          color: Colors.white,
-                                          fontStyle: FontStyle.italic,
-                                          fontSize: 12.0,
-                                          fontWeight: FontWeight.bold)),
+                              MaterialButton(
+                                height: 30.0,
+                                splashColor: Colors.white,
+                                onPressed: () {},
+                                elevation: 3.0,
+                                color: Colors.green,
+                                child: SizedBox(
+                                  width: 135.0,
+                                  child: Row(
+                                    children: <Widget>[
+                                      Icon(
+                                        Icons.file_download,
+                                        color: Colors.white,
+                                      ),
+                                      Text('1080p (${snapshot['1080']})',
+                                          style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 12.0,
+                                              fontStyle: FontStyle.italic,
+                                              fontWeight: FontWeight.bold)),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ],

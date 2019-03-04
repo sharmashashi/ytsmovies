@@ -22,6 +22,7 @@ class _AppState extends State<App> {
     return MaterialApp(
         debugShowCheckedModeBanner: false,
         home: Scaffold(
+          backgroundColor: Colors.grey[200],
           appBar: appBar(),
           body: Container(
             child: Center(
@@ -34,6 +35,7 @@ class _AppState extends State<App> {
                   } else {
                     movieList = snapshot.data;
                     return ListView.builder(
+                      scrollDirection: Axis.vertical,
                       itemCount: movieList.length,
                       itemBuilder: (BuildContext ctx, int index) {
                         return movieCard(movieList[index]);
@@ -147,20 +149,30 @@ class MovieDetails {
   String size720p;
   String size1080p;
   String coverImage;
+  String year;
+  String rating;
+  String runtime;
+  String seeds720;
+  String peers720;
+  String seeds1080;
+  String peers1080;
   Map details = new Map();
   Map finalDetails = new Map();
   MovieDetails(this.details) {
     title = details['title'];
     genres = details['genres'];
+    year = details['year'].toString();
+    rating = details['rating'].toString();
+    runtime = details['runtime'].toString();
+    seeds720 = details['torrents'][0]['seeds'].toString();
+    peers720 = details['torrents'][0]['peers'].toString();
     size720p = details['torrents'][0]['size'];
-
     if (details['torrents'].length >= 2) {
       size1080p = details['torrents'][1]['size'];
-      print('first line execute bho');
+      seeds1080 = details['torrents'][1]['seeds'].toString();
+      peers1080 = details['torrents'][1]['peers'].toString();
     }
-
     coverImage = details['large_cover_image'];
-
     summary = details['description_full'];
 
     finalDetails['title'] = title;
@@ -169,5 +181,12 @@ class MovieDetails {
     finalDetails['1080'] = size1080p;
     finalDetails['image'] = coverImage;
     finalDetails['summary'] = summary;
+    finalDetails['year'] = year;
+    finalDetails['runtime'] = runtime;
+    finalDetails['rating'] = rating;
+    finalDetails['seeds720'] = seeds720;
+    finalDetails['peers720'] = peers720;
+    finalDetails['seeds1080'] = seeds1080;
+    finalDetails['peers1080'] = peers1080;
   }
 }
