@@ -14,6 +14,9 @@ class _AppState extends State<App> {
   TextEditingController searchController = new TextEditingController();
   Movies movies = new Movies();
 
+  List movieList =
+      new List(); //to store list of movies obtained from snapshot in stream
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -25,9 +28,18 @@ class _AppState extends State<App> {
               child: StreamBuilder(
                 stream: movies.outTitle(),
                 builder: (BuildContext context, AsyncSnapshot snapshot) {
-                  return snapshot.hasData == false
-                      ? CircularProgressIndicator()
-                      : movieCard(snapshot);
+                  if (snapshot.hasData == false) {
+                    movies.onFutureSucceed();
+                    return CircularProgressIndicator();
+                  } else {
+                    movieList = snapshot.data;
+                    return ListView.builder(
+                      itemCount: movieList.length,
+                      itemBuilder: (BuildContext ctx, int index) {
+                        return movieCard(movieList[index]);
+                      },
+                    );
+                  }
                 },
               ),
             ),
@@ -62,7 +74,7 @@ class _AppState extends State<App> {
             padding: EdgeInsets.only(left: 10.0),
             child: IconButton(
                 onPressed: () {
-                  movies.onFutureSucceed(0);
+                  movies.onFutureSucceed();
                   //search.sink.add(searchController.text);
                 },
                 icon: Icon(Icons.search, size: 30.0, color: Colors.white)),
@@ -87,37 +99,41 @@ class Movies {
       http.get("https://yts.am/api/v2/list_movies.json?limit=40");
 
 //todo when data from future obtained
-  onFutureSucceed(int index) {
+  onFutureSucceed() {
     Future response = getJsonData();
     response.then((value) {
       jsonBody = convert.jsonDecode(value.body);
-      getMovieDetails(index);
+      print('after jsonBody');
+      getMovieDetails();
     }, onError: (e) {
       titleController.sink.add(e);
       print("yeha error aayo $e");
     });
   }
 
-  List<MovieDetails> movie = [];
-  Map details = new Map();
-  getMovieDetails(int index) {
+  List<MovieDetails> movie = new List();
+  List<Map> details = new List();
+  getMovieDetails() {
     jsonData = jsonBody['data'];
-    for (int i = 0; i < jsonData.length; i++) {
+    print('after json data assignment');
+    for (int i = 0; i < jsonData['movies'].length; i++) {
+      print('inside for loop after json data assignment i = $i');
       movies.add(jsonData['movies'][i]);
+      print('bich ma');
       movie.add(new MovieDetails(movies[i]));
+      print('chheu ma');
     }
 
-    setDetails(int indexOne) {
-      details['title'] = movie[indexOne].title;
-      details['genre'] = movie[indexOne].genres;
-      details['720'] = movie[indexOne].size720p;
-      details['1080'] = movie[indexOne].size1080p;
-      details['image'] = movie[indexOne].coverImage;
-      details['summary'] = movie[indexOne].summary;
+//calls for movie details from movie 0-9
+    for (int i = 0; i < movie.length; i++) {
+      setDetails(i);
     }
-
-    setDetails(2);
     titleController.sink.add(details);
+  }
+
+  setDetails(int indexOne) {
+    print('setdetails fun bhitra');
+    details.add(movie[indexOne].finalDetails);
   }
 
   //output from stream
@@ -132,12 +148,26 @@ class MovieDetails {
   String size1080p;
   String coverImage;
   Map details = new Map();
+  Map finalDetails = new Map();
   MovieDetails(this.details) {
     title = details['title'];
     genres = details['genres'];
     size720p = details['torrents'][0]['size'];
-    size1080p = details['torrents'][1]['size'];
+
+    if (details['torrents'].length >= 2) {
+      size1080p = details['torrents'][1]['size'];
+      print('first line execute bho');
+    }
+
     coverImage = details['large_cover_image'];
-    summary = details['summary'];
+
+    summary = details['description_full'];
+
+    finalDetails['title'] = title;
+    finalDetails['genre'] = genres;
+    finalDetails['720'] = size720p;
+    finalDetails['1080'] = size1080p;
+    finalDetails['image'] = coverImage;
+    finalDetails['summary'] = summary;
   }
 }

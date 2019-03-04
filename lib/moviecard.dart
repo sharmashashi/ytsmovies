@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 //returns movie card
-Widget movieCard(AsyncSnapshot snapshot) {
+Widget movieCard(Map snapshot) {
   return SizedBox(
     width: 230.0,
     height: 352.0,
@@ -14,7 +14,7 @@ Widget movieCard(AsyncSnapshot snapshot) {
             children: <Widget>[
               DecoratedBox(
                   decoration: BoxDecoration(),
-                  child: Image.network('${snapshot.data['image']}')),
+                  child: Image.network('${snapshot['image']}')),
               Positioned(
                 bottom: 3.0,
                 left: 0.0,
@@ -45,7 +45,7 @@ Widget movieCard(AsyncSnapshot snapshot) {
                                 scrollDirection: Axis.horizontal,
                                 children: <Widget>[
                                   Text(
-                                    '${snapshot.data['title']}',
+                                    '${snapshot['title']}',
                                     style: TextStyle(
                                         color: Colors.green[800],
                                         fontSize: 18.0,
@@ -60,7 +60,7 @@ Widget movieCard(AsyncSnapshot snapshot) {
                                   scrollDirection: Axis.horizontal,
                                   children: <Widget>[
                                     Text(
-                                      '${snapshot.data['genre'].join('/')}',
+                                      '${snapshot['genre'].join('/')}',
                                       style: TextStyle(
                                           color: Colors.black, fontSize: 12.0),
                                     ),
@@ -70,7 +70,7 @@ Widget movieCard(AsyncSnapshot snapshot) {
                             child: Container(
                                 height: 170.0,
                                 child: ListView(children: <Widget>[
-                                  Text('${snapshot.data['summary']}',
+                                  Text('${snapshot['summary']}',
                                       style: TextStyle(
                                           color: Colors.black,
                                           fontSize: 16.0,
@@ -88,7 +88,7 @@ Widget movieCard(AsyncSnapshot snapshot) {
                                   onPressed: () {},
                                   elevation: 3.0,
                                   color: Colors.green,
-                                  child: Text('720p (${snapshot.data['720']})',
+                                  child: Text('720p (${snapshot['720']})',
                                       style: TextStyle(
                                           color: Colors.white,
                                           fontSize: 11.0,
@@ -105,7 +105,7 @@ Widget movieCard(AsyncSnapshot snapshot) {
                                   elevation: 3.0,
                                   color: Colors.green,
                                   child: Text(
-                                      '1080p (${snapshot.data['1080']})',
+                                      '1080p (${snapshot['1080']})',
                                       style: TextStyle(
                                           color: Colors.white,
                                           fontStyle: FontStyle.italic,
