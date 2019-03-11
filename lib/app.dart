@@ -241,6 +241,8 @@ class Movies {
 
 class MovieDetails {
   String summary;
+  String url720p;
+  String url1080p;
   String title;
   List genres;
   String size720p;
@@ -264,10 +266,12 @@ class MovieDetails {
     seeds720 = details['torrents'][0]['seeds'].toString();
     peers720 = details['torrents'][0]['peers'].toString();
     size720p = details['torrents'][0]['size'];
+    url720p = details['torrents'][0]['url'];
     if (details['torrents'].length >= 2) {
       size1080p = details['torrents'][1]['size'];
       seeds1080 = details['torrents'][1]['seeds'].toString();
       peers1080 = details['torrents'][1]['peers'].toString();
+      url1080p = details['torrents'][1]['url'];
     }
     coverImage = details['medium_cover_image'];
     summary = details['description_full'];
@@ -285,5 +289,7 @@ class MovieDetails {
     finalDetails['peers720'] = peers720;
     finalDetails['seeds1080'] = seeds1080;
     finalDetails['peers1080'] = peers1080;
+    finalDetails['url720p'] = url720p;
+    finalDetails['url1080p'] = url1080p;
   }
 }

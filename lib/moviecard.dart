@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'widget dilogue.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:http/http.dart' as http;
+import 'dart:io';
 
 TextStyle smallDetailStyle = new TextStyle(
   color: Colors.white,
@@ -6,6 +10,41 @@ TextStyle smallDetailStyle = new TextStyle(
   fontWeight: FontWeight.bold,
   fontStyle: FontStyle.italic,
 );
+
+var httpclient = new http.Client();
+
+//downloader function()
+downloader(String url, String filename) async {
+  var request = await httpclient.get(Uri.parse(url));
+  var bytes = request.bodyBytes;
+
+  String dir = (await getExternalStorageDirectory()).path;
+  print('before downlad is $dir');
+  final moviedir = new Directory(dir + '/YtsMovies');
+  String newdir;
+  moviedir.exists().then((exists) {
+    if (exists == true) {
+      newdir = dir + '/YtsMovies';
+      print('new directory $newdir');
+    } else {
+      new Directory(dir + '/YtsMovies')
+          .create(recursive: true)
+          .then((Directory directory) {
+        newdir = directory.path;
+        print('new directory if not exist $newdir');
+        return newdir;
+      });
+    }
+  });
+  print("file writing with dir: $newdir");
+
+  File file = new File('$dir/YtsMovies/$filename');
+  await file.writeAsBytes(bytes);
+  print('file write complete');
+ return Dialogue();
+ // return file;
+}
+
 //returns movie card
 Widget movieCard(Map snapshot) {
   return SizedBox(
@@ -64,14 +103,18 @@ Widget movieCard(Map snapshot) {
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 15.0)),
-                                    Divider(color: Colors.white,height: 1.5,),
-
-                            Container(height: 10.0,),
+                            Divider(
+                              color: Colors.white,
+                              height: 1.5,
+                            ),
+                            Container(
+                              height: 10.0,
+                            ),
                             Text(
                               '720p: ${snapshot['seeds720']}/${snapshot['peers720']}',
                               style: smallDetailStyle,
                             ),
-                            Container(height:10.0),
+                            Container(height: 10.0),
                             Text(
                               '1080p: ${snapshot['seeds1080']}/${snapshot['peers1080']}',
                               style: smallDetailStyle,
@@ -179,7 +222,10 @@ Widget movieCard(Map snapshot) {
                               MaterialButton(
                                 height: 30.0,
                                 splashColor: Colors.white,
-                                onPressed: () {},
+                                onPressed: () {
+                                  downloader('${snapshot['url720p']}',
+                                      '${snapshot['title']}.torrent');
+                                },
                                 elevation: 3.0,
                                 color: Colors.green,
                                 child: SizedBox(
@@ -203,7 +249,10 @@ Widget movieCard(Map snapshot) {
                               MaterialButton(
                                 height: 30.0,
                                 splashColor: Colors.white,
-                                onPressed: () {},
+                                onPressed: () {
+                                  downloader('${snapshot['url1080p']}',
+                                      '${snapshot['title']}.torrent');
+                                },
                                 elevation: 3.0,
                                 color: Colors.green,
                                 child: SizedBox(
