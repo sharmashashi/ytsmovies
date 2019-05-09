@@ -16,78 +16,41 @@ TextStyle smallDetailStyle = new TextStyle(
 var httpclient = new http.Client();
 
 //downloader function()
-downloader(String url, String filename, BuildContext ctx) async {
+downloader(String url, String filename) async {
   var request = await httpclient.get(Uri.parse(url));
   var bytes = request.bodyBytes;
+
   String dir = (await getExternalStorageDirectory()).path;
   print('before downlad is $dir');
   final moviedir = new Directory(dir + '/YtsMovies');
   String newdir;
   moviedir.exists().then((exists) {
-    if (exists == false) {
+    if (exists == true) {
+      newdir = dir + '/YtsMovies';
+      print('new directory $newdir');
+    } else {
       new Directory(dir + '/YtsMovies')
           .create(recursive: true)
           .then((Directory directory) {
         newdir = directory.path;
         print('new directory if not exist $newdir');
-        //return newdir;
-        File file = new File('$dir/YtsMovies/$filename');
-        file.writeAsBytes(bytes).then((value) {
-          dialog(ctx);
-        });
-        print('file write complete');
+        return newdir;
       });
-    } else {
-      File file = new File('$dir/YtsMovies/$filename');
-      file.writeAsBytes(bytes).then((value) {
-        dialog(ctx);
-      });
-      print('file write complete');
     }
   });
+  print("file writing with dir: $newdir");
 
+  File file = new File('$dir/YtsMovies/$filename');
+  await file.writeAsBytes(bytes).then((value) {
+   
+  });
+  print('file write complete');
+  //return Dialogue();
   // return file;
 }
 
-dialog(BuildContext context) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) => new SimpleDialog(
-          backgroundColor: Colors.white,
-          children: <Widget>[
-            Center(
-                child: Text('Download Complete!',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 20.0,
-                      fontWeight: FontWeight.bold,
-                    ))),
-            Container(height: 10),
-            Center(
-              child: Icon(
-                Icons.check_circle,
-                color: Colors.green,
-              ),
-            ),
-            Container(
-              height: 10.0,
-            ),
-            Center(
-              child: Text(
-                'check YtsMovies folder',
-                style: TextStyle(
-                    color: Colors.black,
-                    fontStyle: FontStyle.italic,
-                    fontSize: 15.0),
-              ),
-            )
-          ],
-        ),
-  );
-}
-
 //returns movie card
-Widget movieCard(Map snapshot, BuildContext context) {
+Widget movieCard(Map snapshot) {
   return SizedBox(
     width: 230.0,
     height: 350.0,
@@ -265,7 +228,7 @@ Widget movieCard(Map snapshot, BuildContext context) {
                                 splashColor: Colors.white,
                                 onPressed: () {
                                   downloader('${snapshot['url720p']}',
-                                      '${snapshot['title']}.torrent', context);
+                                      '${snapshot['title']}.torrent');
                                 },
                                 elevation: 3.0,
                                 color: Colors.green,
@@ -292,7 +255,7 @@ Widget movieCard(Map snapshot, BuildContext context) {
                                 splashColor: Colors.white,
                                 onPressed: () {
                                   downloader('${snapshot['url1080p']}',
-                                      '${snapshot['title']}.torrent', context);
+                                      '${snapshot['title']}.torrent');
                                 },
                                 elevation: 3.0,
                                 color: Colors.green,

@@ -53,7 +53,7 @@ class _AppState extends State<App> {
                       scrollDirection: Axis.vertical,
                       itemCount: movieList.length,
                       itemBuilder: (BuildContext ctx, int index) {
-                        return movieCard(movieList[index]);
+                        return movieCard(movieList[index],context);
                       },
                     );
                   }
